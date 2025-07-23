@@ -1,0 +1,35 @@
+static def configurationRepositories(RepositoryHandler handler) {
+    handler.with {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven {
+            url "http://localhost:8081/repository/maven-public/"
+            credentials {
+                username 'admin'
+                password 'admin'
+            }
+            //是 Gradle 中用于 允许使用 HTTP（非 HTTPS）协议拉取依赖 的一个安全配置开关。
+            allowInsecureProtocol true
+        }
+        gradlePluginPortal()
+    }
+}
+//Gradle 插件如何获取
+configurationRepositories(pluginManagement.repositories)
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    //项目依赖如何获取
+    configurationRepositories(repositories)
+    //启用和配置 libs.versions.toml，用来统一依赖和插件版本管理
+//    versionCatalogs {
+//        libs {
+//            from(files("gradle/libs.versions.toml"))
+//        }
+//    }
+}
+
+rootProject.name = "StudyLibrary"
+include ':app'
+include ':core'

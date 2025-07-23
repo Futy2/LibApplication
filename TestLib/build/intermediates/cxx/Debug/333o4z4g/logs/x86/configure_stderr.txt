@@ -1,0 +1,2 @@
+CMake Error: The source directory "/Users/imogen/Documents/workspace/myworkspace/app/mycompany2/studyLibray/TestLib/src/main/cpp" does not exist.
+Specify --help for usage, or press the help button on the CMake GUI.

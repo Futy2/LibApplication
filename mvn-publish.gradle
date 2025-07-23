@@ -1,0 +1,72 @@
+apply plugin: 'maven-publish'
+
+// ========= 参数配置（你可以抽出去配置）=========
+def defaultRepoBase = [
+        releaseUrl : 'http://localhost:8081/repository/maven-releases/',
+        snapshotUrl: 'http://localhost:8081/repository/maven-snapshots/',
+        userName   : 'admin',
+        password   : 'admin',
+]
+
+// ========= 通用方法：创建 AAR 发布逻辑 =========
+def createAndroidPublications = { targetGroupId, targetVersion, targetArtifactId ->
+    // 这里的代码会在整个 build.gradle 文件都执行完成后运行
+    afterEvaluate {
+        publishing {
+            publications {
+                release(MavenPublication) {
+                    groupId = targetGroupId
+                    artifactId = targetArtifactId
+                    version = targetVersion
+
+                    // 指定发布的变体为 release（用于 Android Library）
+                    from components.release
+
+                    // 可选：附加源码包、注释包
+                    // artifact tasks.findByName("sourcesJar")
+                    // artifact tasks.findByName("javadocJar")
+                }
+            }
+        }
+    }
+
+    declareRepositories(targetVersion)
+}
+
+// ========= 仓库声明方法（支持本地覆盖 + env）=========
+def declareRepositories = { version ->
+    publishing {
+        repositories {
+            maven {
+                def isSnapshot = version.toString().endsWith('SNAPSHOT')
+                def repoUrl = isSnapshot ? defaultRepoBase.snapshotUrl : defaultRepoBase.releaseUrl
+
+                url = uri(repoUrl)
+                allowInsecureProtocol = true
+
+                // ===== 获取凭证：优先 local.properties > gradle.properties > ENV > 默认 =====
+                def actualUsername = defaultRepoBase.userName
+                def actualPassword = defaultRepoBase.password
+
+                def props = new Properties()
+                def localPropFile = rootProject.file("local.properties")
+                if (localPropFile.exists()) {
+                    props.load(localPropFile.newDataInputStream())
+                    actualUsername = props.getProperty("maven_username", actualUsername)
+                    actualPassword = props.getProperty("maven_password", actualPassword)
+                }
+
+                actualUsername = findProperty("maven_username") ?: System.getenv("NEXUS_USER") ?: actualUsername
+                actualPassword = findProperty("maven_password") ?: System.getenv("NEXUS_PASS") ?: actualPassword
+
+                credentials {
+                    username = actualUsername
+                    password = actualPassword
+                }
+            }
+        }
+    }
+}
+//把 Groovy 脚本中的函数“导出”成 Gradle 项目可以全局访问的变量或方法。
+ext.createAndroidPublications = createAndroidPublications
+ext.declareRepositories = declareRepositories

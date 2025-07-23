@@ -1,0 +1,48 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+}
+
+android {
+    namespace 'com.example.core'
+    compileSdk 35
+
+    defaultConfig {
+        namespace "com.example.core"
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+}
+
+
+apply from: '../mvn-publish.gradle'
+
+version = "1.0.1-SNAPSHOT" //后缀加"-SNAPSHOT" ，表示快照包，发布新内容可以不更新版本号直接覆盖。
+def targetArtifactId = "study-test"
+def group = "com.example.core"
+//println ">>>> 是否加载成功: ${project.ext.has('createAndroidPublications')}"
+createAndroidPublications(group, version, targetArtifactId)
